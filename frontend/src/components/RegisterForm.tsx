@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useWallet } from "./WalletProvider";
+import { createDao } from "@/lib/contracts";
 
 interface RegisterFormData {
   name: string;
@@ -42,19 +43,23 @@ export function RegisterForm() {
 
     setSubmitting(true);
     try {
-      // TODO: Call register_dao on the DAO factory contract
-      // For now, log the form data
-      console.log("Registering DAO:", {
-        ...form,
+      await createDao({
         creator: address,
-        proposalDuration: form.proposalDuration * 3600, // convert to seconds
+        name: form.name,
+        descriptionUrl: form.descriptionUrl,
+        baseToken: form.baseToken,
+        quoteToken: form.quoteToken,
+        proposalDuration: form.proposalDuration * 3600, // hours to seconds
+        passThresholdBps: form.passThresholdBps,
+        minBaseLiquidity: form.minBaseLiquidity,
+        ammFeeBps: form.ammFeeBps,
       });
-
-      // Simulate success for demo
       setSuccess(true);
     } catch (err) {
       console.error("Failed to register DAO:", err);
-      alert("Failed to register DAO. Check console for details.");
+      alert(
+        `Failed to register DAO: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
     } finally {
       setSubmitting(false);
     }
@@ -110,31 +115,41 @@ export function RegisterForm() {
         />
       </div>
 
+      <div className="p-3 bg-gray-900/50 border border-gray-800 rounded-lg text-xs text-gray-400 space-y-1">
+        <p className="font-medium text-gray-300">Testnet token addresses (must start with C):</p>
+        <p>XLM (native): <code className="text-indigo-400 select-all">CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC</code></p>
+        <p>USDC (test): <code className="text-indigo-400 select-all">CCV3CMLKA6IL342LANM6XIWKURBCFU3RNR5M5QUBMDUOIP5KHI6GLLDJ</code></p>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">
-            Base Token (Address)
+            Base Token (Contract Address)
           </label>
           <input
             type="text"
             required
+            pattern="C[A-Z0-9]{55}"
+            title="Must be a Soroban contract address starting with C"
             value={form.baseToken}
             onChange={(e) => update("baseToken", e.target.value)}
             className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 font-mono text-xs"
-            placeholder="C..."
+            placeholder="CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">
-            Quote Token (Address)
+            Quote Token (Contract Address)
           </label>
           <input
             type="text"
             required
+            pattern="C[A-Z0-9]{55}"
+            title="Must be a Soroban contract address starting with C"
             value={form.quoteToken}
             onChange={(e) => update("quoteToken", e.target.value)}
             className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 font-mono text-xs"
-            placeholder="C..."
+            placeholder="CCV3CMLKA6IL342LANM6XIWKURBCFU3RNR5M5QUBMDUOIP5KHI6GLLDJ"
           />
         </div>
       </div>

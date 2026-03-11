@@ -4,6 +4,7 @@ members = [
     "contracts/conditional_vault",
     "contracts/futarchy_amm",
     "contracts/dao",
+    "contracts/factory",
 ]
 
 [workspace.dependencies]

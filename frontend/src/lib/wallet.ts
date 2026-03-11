@@ -11,6 +11,7 @@ export async function isFreighterInstalled(): Promise<boolean> {
 }
 
 export async function connectWallet(): Promise<string> {
+  await freighter.requestAccess();
   const { address } = await freighter.getAddress();
   return address;
 }

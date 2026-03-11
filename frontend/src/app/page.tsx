@@ -1,31 +1,36 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { DaoCard } from "@/components/DaoCard";
+import { listDaos, type DaoEntry } from "@/lib/contracts";
+import { FACTORY_CONTRACT_ID } from "@/lib/constants";
 import Link from "next/link";
 
-// Demo data — in production this comes from contract queries or event indexing
-const DEMO_DAOS = [
-  {
-    id: "demo-1",
-    name: "Stellar DeFi Collective",
-    description:
-      "A futarchy-governed fund for Stellar DeFi protocol development. Proposals are decided by prediction markets.",
-    baseToken: "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-    proposalCount: 3,
-    creator: "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-  },
-  {
-    id: "demo-2",
-    name: "Lumen Grants DAO",
-    description:
-      "Community-driven grants program using futarchy to allocate XLM to ecosystem projects.",
-    baseToken: "CBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-    proposalCount: 1,
-    creator: "GBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-  },
-];
-
 export default function HomePage() {
+  const [daos, setDaos] = useState<DaoEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchDaos() {
+      if (!FACTORY_CONTRACT_ID) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const entries = await listDaos();
+        setDaos(entries);
+      } catch (err) {
+        console.error("Failed to fetch DAOs:", err);
+        setDaos([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDaos();
+  }, []);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -43,13 +48,25 @@ export default function HomePage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {DEMO_DAOS.map((dao) => (
-          <DaoCard key={dao.id} {...dao} />
-        ))}
-      </div>
-
-      {DEMO_DAOS.length === 0 && (
+      {loading ? (
+        <div className="text-center py-16 text-gray-500">
+          Loading DAOs from chain...
+        </div>
+      ) : daos.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {daos.map((dao) => (
+            <DaoCard
+              key={dao.contract_id}
+              id={dao.contract_id}
+              name={dao.name}
+              description=""
+              baseToken=""
+              proposalCount={0}
+              creator={dao.creator}
+            />
+          ))}
+        </div>
+      ) : (
         <div className="text-center py-16 text-gray-500">
           <p className="text-lg mb-2">No DAOs registered yet.</p>
           <p>Be the first to create a futarchy DAO on Stellar!</p>

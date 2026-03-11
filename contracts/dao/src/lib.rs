@@ -1,8 +1,9 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contractimpl, contracttype, contracterror, token, Address, BytesN, Env, String,
-    Symbol,
+    auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation},
+    contract, contractimpl, contracttype, contracterror, token, vec, Address, BytesN, Env,
+    IntoVal, String, Symbol,
 };
 
 mod vault_client {
@@ -168,8 +169,60 @@ impl DaoContract {
         let base_client = token::Client::new(&env, &config.base_token);
         base_client.transfer(&proposer, &env.current_contract_address(), &base_amount);
 
+        // Authorize this contract (DAO) to let the vault transfer tokens on its behalf.
+        // The vault's split() calls token.transfer(dao, vault, amount), which needs DAO auth.
+        env.authorize_as_current_contract(vec![
+            &env,
+            InvokerContractAuthEntry::Contract(SubContractInvocation {
+                context: ContractContext {
+                    contract: config.base_token.clone(),
+                    fn_name: Symbol::new(&env, "transfer"),
+                    args: (
+                        env.current_contract_address(),
+                        vault_addr.clone(),
+                        base_amount,
+                    )
+                        .into_val(&env),
+                },
+                sub_invocations: vec![&env],
+            }),
+        ]);
+
         // Split into pass/fail conditional tokens
         vault.split(&env.current_contract_address(), &base_amount);
+
+        // Authorize this contract to let the AMM transfer conditional tokens on its behalf.
+        // The AMM's add_liquidity() calls vault.transfer_pass(dao, amm, amount) and
+        // vault.transfer_fail(dao, amm, amount), both needing DAO auth.
+        env.authorize_as_current_contract(vec![
+            &env,
+            InvokerContractAuthEntry::Contract(SubContractInvocation {
+                context: ContractContext {
+                    contract: vault_addr.clone(),
+                    fn_name: Symbol::new(&env, "transfer_pass"),
+                    args: (
+                        env.current_contract_address(),
+                        amm_addr.clone(),
+                        base_amount,
+                    )
+                        .into_val(&env),
+                },
+                sub_invocations: vec![&env],
+            }),
+            InvokerContractAuthEntry::Contract(SubContractInvocation {
+                context: ContractContext {
+                    contract: vault_addr.clone(),
+                    fn_name: Symbol::new(&env, "transfer_fail"),
+                    args: (
+                        env.current_contract_address(),
+                        amm_addr.clone(),
+                        base_amount,
+                    )
+                        .into_val(&env),
+                },
+                sub_invocations: vec![&env],
+            }),
+        ]);
 
         // Seed AMM with equal pass/fail liquidity
         amm.add_liquidity(&env.current_contract_address(), &base_amount, &base_amount);
