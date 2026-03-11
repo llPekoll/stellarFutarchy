@@ -1,0 +1,24 @@
+# Rust / Cargo
+target/
+**/*.rs.bk
+Cargo.lock
+
+# WASM artifacts
+wasm/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env*.local
+test_snapshots/
