@@ -257,7 +257,7 @@ export async function getDaoConfig(
 
 export async function getProposalCount(
   daoContractId: string,
-  sourceAddress: string
+  sourceAddress?: string
 ): Promise<number> {
   const result = await queryContract(
     daoContractId,

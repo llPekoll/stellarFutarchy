@@ -7,15 +7,15 @@ export function ConnectWallet() {
 
   if (connected && address) {
     return (
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-gray-400 font-mono">
-          {address.slice(0, 6)}...{address.slice(-4)}
-        </span>
-        <button
-          onClick={disconnect}
-          className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors"
-        >
-          Disconnect
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <button className="btn btn-wallet" onClick={() => {}}>
+          <span className="wallet-dot" />
+          {address.slice(0, 4)}...{address.slice(-4)}
+        </button>
+        <button className="btn btn-outline btn-sm" onClick={disconnect}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
         </button>
       </div>
     );
@@ -23,11 +23,11 @@ export function ConnectWallet() {
 
   return (
     <button
+      className="btn btn-primary"
       onClick={connect}
       disabled={connecting}
-      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-lg transition-colors"
     >
-      {connecting ? "Connecting..." : "Connect Wallet"}
+      {connecting ? "Connecting..." : "Sign in"}
     </button>
   );
 }

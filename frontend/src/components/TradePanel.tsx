@@ -20,8 +20,6 @@ interface TradePanelProps {
   onUpdate: () => void;
 }
 
-const SCALE = 1_000_000_000;
-
 export function TradePanel({
   proposalId,
   vaultAddress,
@@ -69,7 +67,7 @@ export function TradePanel({
 
   const estimateSwapOut = (amountIn: number) => {
     if (!amountIn || amountIn <= 0) return 0;
-    const fee = amountIn * 0.003; // 30 bps
+    const fee = amountIn * 0.003;
     const netIn = amountIn - fee;
     const [rIn, rOut] = buyPass
       ? [failReserve, passReserve]
@@ -82,11 +80,7 @@ export function TradePanel({
     if (!address || !amount) return;
     setSubmitting(true);
     try {
-      await splitTokens({
-        depositor: address,
-        amount: parseInt(amount),
-        vaultAddress,
-      });
+      await splitTokens({ depositor: address, amount: parseInt(amount), vaultAddress });
       setAmount("");
       await fetchBalances();
       onUpdate();
@@ -104,9 +98,7 @@ export function TradePanel({
     const sellingToken = buyPass ? "fail" : "pass";
     const sellingBalance = buyPass ? failBalance : passBalance;
     if (sellingBalance < amountIn) {
-      alert(
-        `Insufficient ${sellingToken} token balance. You have ${sellingBalance} but are trying to sell ${amountIn}. Split base tokens first to get conditional tokens.`
-      );
+      alert(`Insufficient ${sellingToken} token balance. You have ${sellingBalance} but are trying to sell ${amountIn}. Split base tokens first to get conditional tokens.`);
       return;
     }
     const estOut = estimateSwapOut(amountIn);
@@ -116,14 +108,8 @@ export function TradePanel({
     }
     setSubmitting(true);
     try {
-      const minOut = Math.floor(estOut * 0.95); // 5% slippage
-      await swapOnAmm({
-        user: address,
-        buyPass,
-        amountIn,
-        minAmountOut: minOut,
-        ammAddress,
-      });
+      const minOut = Math.floor(estOut * 0.95);
+      await swapOnAmm({ user: address, buyPass, amountIn, minAmountOut: minOut, ammAddress });
       setAmount("");
       await fetchBalances();
       onUpdate();
@@ -139,11 +125,7 @@ export function TradePanel({
     if (!address || !amount) return;
     setSubmitting(true);
     try {
-      await mergeTokens({
-        user: address,
-        amount: parseInt(amount),
-        vaultAddress,
-      });
+      await mergeTokens({ user: address, amount: parseInt(amount), vaultAddress });
       setAmount("");
       await fetchBalances();
       onUpdate();
@@ -171,89 +153,92 @@ export function TradePanel({
   };
 
   const amountNum = parseInt(amount) || 0;
+  const tabs = state === "Active" ? (["split", "swap", "merge"] as const) : (["redeem"] as const);
 
   return (
-    <div className="border border-gray-800 rounded-xl p-6 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">
-          Trade — Proposal #{proposalId}
-        </h3>
+    <div className="card-static" style={{ marginBottom: 24 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 600 }}>Trade — Proposal #{proposalId}</h3>
         <button
           onClick={onClose}
-          className="text-gray-500 hover:text-white text-sm"
+          style={{
+            background: "none", border: "none", color: "var(--text-muted)",
+            cursor: "pointer", fontSize: 13, fontFamily: "inherit",
+          }}
         >
           Close
         </button>
       </div>
 
       {/* Market info */}
-      <div className="grid grid-cols-4 gap-3 mb-5 p-3 bg-gray-900/50 rounded-lg">
+      <div style={{
+        display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12,
+        marginBottom: 16, padding: 12, background: "var(--bg-secondary)", borderRadius: 10,
+      }}>
         <div>
-          <p className="text-xs text-gray-500">Pass Price</p>
-          <p className="text-sm font-mono text-green-400">
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Pass Price</div>
+          <div style={{ fontSize: 14, fontFamily: "monospace", fontWeight: 600, color: "var(--success)" }}>
             {(passPrice * 100).toFixed(1)}%
-          </p>
+          </div>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Fail Price</p>
-          <p className="text-sm font-mono text-red-400">
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Fail Price</div>
+          <div style={{ fontSize: 14, fontFamily: "monospace", fontWeight: 600, color: "var(--error)" }}>
             {((1 - passPrice) * 100).toFixed(1)}%
-          </p>
+          </div>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Your Pass</p>
-          <p className="text-sm font-mono text-white">{passBalance}</p>
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Your Pass</div>
+          <div style={{ fontSize: 14, fontFamily: "monospace", fontWeight: 600 }}>{passBalance}</div>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Your Fail</p>
-          <p className="text-sm font-mono text-white">{failBalance}</p>
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Your Fail</div>
+          <div style={{ fontSize: 14, fontFamily: "monospace", fontWeight: 600 }}>{failBalance}</div>
         </div>
       </div>
 
       {/* Pool reserves */}
-      <div className="grid grid-cols-2 gap-3 mb-5 p-3 bg-gray-900/50 rounded-lg">
+      <div style={{
+        display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12,
+        marginBottom: 16, padding: 12, background: "var(--bg-secondary)", borderRadius: 10,
+      }}>
         <div>
-          <p className="text-xs text-gray-500">Pool Pass Reserves</p>
-          <p className="text-sm font-mono text-white">{passReserve}</p>
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Pool Pass Reserves</div>
+          <div style={{ fontSize: 14, fontFamily: "monospace", fontWeight: 600 }}>{passReserve}</div>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Pool Fail Reserves</p>
-          <p className="text-sm font-mono text-white">{failReserve}</p>
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Pool Fail Reserves</div>
+          <div style={{ fontSize: 14, fontFamily: "monospace", fontWeight: 600 }}>{failReserve}</div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-gray-900 rounded-lg p-1">
-        {state === "Active" ? (
-          <>
-            {(["split", "swap", "merge"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`flex-1 py-1.5 text-sm rounded-md transition-colors ${
-                  tab === t
-                    ? "bg-indigo-600 text-white"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            ))}
-          </>
-        ) : (
+      <div style={{
+        display: "flex", gap: 4, marginBottom: 16, background: "var(--bg-secondary)",
+        borderRadius: 10, padding: 4,
+      }}>
+        {tabs.map((t) => (
           <button
-            onClick={() => setTab("redeem")}
-            className="flex-1 py-1.5 text-sm rounded-md bg-indigo-600 text-white"
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              flex: 1, padding: "8px 0", fontSize: 13, fontWeight: 600,
+              borderRadius: 8, border: "none", cursor: "pointer",
+              fontFamily: "inherit",
+              background: tab === t ? "var(--accent)" : "transparent",
+              color: tab === t ? "white" : "var(--text-muted)",
+              transition: "all 0.2s",
+            }}
           >
-            Redeem
+            {t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
-        )}
+        ))}
       </div>
 
       {/* Split tab */}
       {tab === "split" && (
-        <div className="space-y-3">
-          <p className="text-xs text-gray-400">
+        <div>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>
             Deposit base tokens to receive equal pass + fail conditional tokens.
           </p>
           <input
@@ -262,17 +247,22 @@ export function TradePanel({
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Amount to split"
-            className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+            className="form-input"
+            style={{ marginBottom: 12 }}
           />
           {amountNum > 0 && (
-            <p className="text-xs text-gray-500">
-              You'll receive {amountNum} pass + {amountNum} fail tokens
-            </p>
+            <div style={{
+              padding: "10px 16px", background: "var(--bg-secondary)", borderRadius: 10,
+              marginBottom: 12, fontSize: 13, color: "var(--text-secondary)",
+            }}>
+              You&apos;ll receive <strong style={{ color: "white" }}>{amountNum}</strong> pass + <strong style={{ color: "white" }}>{amountNum}</strong> fail tokens
+            </div>
           )}
           <button
+            className="btn btn-primary"
+            style={{ width: "100%" }}
             onClick={handleSplit}
             disabled={submitting || !amountNum}
-            className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg transition-colors"
           >
             {submitting ? "Splitting..." : "Split Tokens"}
           </button>
@@ -281,31 +271,34 @@ export function TradePanel({
 
       {/* Swap tab */}
       {tab === "swap" && (
-        <div className="space-y-3">
-          <p className="text-xs text-gray-400">
-            Swap conditional tokens on the AMM. Buy pass if you think the
-            proposal will pass.
+        <div>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>
+            Swap conditional tokens on the AMM. Buy pass if you think the proposal will pass.
           </p>
-          <div className="flex gap-2 mb-2">
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
             <button
+              className="btn"
+              style={{
+                flex: 1,
+                background: buyPass ? "rgba(66,190,101,0.15)" : "var(--bg-secondary)",
+                color: buyPass ? "var(--success)" : "var(--text-muted)",
+                border: buyPass ? "1px solid rgba(66,190,101,0.3)" : "1px solid var(--border-color)",
+              }}
               onClick={() => setBuyPass(true)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                buyPass
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-800 text-gray-400 hover:text-white"
-              }`}
             >
-              Buy Pass (sell fail)
+              Buy Pass
             </button>
             <button
+              className="btn"
+              style={{
+                flex: 1,
+                background: !buyPass ? "rgba(250,77,86,0.15)" : "var(--bg-secondary)",
+                color: !buyPass ? "var(--error)" : "var(--text-muted)",
+                border: !buyPass ? "1px solid rgba(250,77,86,0.3)" : "1px solid var(--border-color)",
+              }}
               onClick={() => setBuyPass(false)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                !buyPass
-                  ? "bg-red-600 text-white"
-                  : "bg-gray-800 text-gray-400 hover:text-white"
-              }`}
             >
-              Buy Fail (sell pass)
+              Buy Fail
             </button>
           </div>
           <input
@@ -314,49 +307,47 @@ export function TradePanel({
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder={`Amount of ${buyPass ? "fail" : "pass"} to sell`}
-            className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+            className="form-input"
+            style={{ marginBottom: 8 }}
           />
-          <p className="text-xs text-gray-500">
-            Available to sell: {buyPass ? failBalance : passBalance}{" "}
-            {buyPass ? "fail" : "pass"} tokens
+          <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>
+            Available: {buyPass ? failBalance : passBalance} {buyPass ? "fail" : "pass"} tokens
             {(buyPass ? failBalance : passBalance) === 0 && (
-              <span className="text-amber-400 ml-1">
-                — Split base tokens first!
-              </span>
+              <span style={{ color: "var(--warning)", marginLeft: 4 }}>— Split base tokens first!</span>
             )}
           </p>
           {amountNum > 0 && (
-            <div className="p-2 bg-gray-900/50 rounded-lg text-xs text-gray-400">
-              <p>
-                Selling: {amountNum} {buyPass ? "fail" : "pass"} tokens
-              </p>
-              <p>
-                Receiving: ~{estimateSwapOut(amountNum).toFixed(1)}{" "}
-                {buyPass ? "pass" : "fail"} tokens
-              </p>
-              <p>Slippage tolerance: 5%</p>
+            <div style={{
+              padding: "10px 16px", background: "var(--bg-secondary)", borderRadius: 10,
+              marginBottom: 12, fontSize: 13, color: "var(--text-secondary)",
+            }}>
+              <div>Selling: <strong style={{ color: "white" }}>{amountNum}</strong> {buyPass ? "fail" : "pass"} tokens</div>
+              <div>Receiving: ~<strong style={{ color: "white" }}>{estimateSwapOut(amountNum).toFixed(1)}</strong> {buyPass ? "pass" : "fail"} tokens</div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Slippage tolerance: 5%</div>
             </div>
           )}
           <button
+            className="btn"
+            style={{
+              width: "100%",
+              background: buyPass ? "rgba(66,190,101,0.15)" : "rgba(250,77,86,0.15)",
+              color: buyPass ? "var(--success)" : "var(--error)",
+              border: buyPass ? "1px solid rgba(66,190,101,0.3)" : "1px solid rgba(250,77,86,0.3)",
+              opacity: submitting || !amountNum ? 0.5 : 1,
+              cursor: submitting || !amountNum ? "not-allowed" : "pointer",
+            }}
             onClick={handleSwap}
             disabled={submitting || !amountNum}
-            className={`w-full py-2 ${
-              buyPass
-                ? "bg-green-600 hover:bg-green-500"
-                : "bg-red-600 hover:bg-red-500"
-            } disabled:opacity-50 text-white rounded-lg transition-colors`}
           >
-            {submitting
-              ? "Swapping..."
-              : `Buy ${buyPass ? "Pass" : "Fail"}`}
+            {submitting ? "Swapping..." : `Buy ${buyPass ? "Pass" : "Fail"}`}
           </button>
         </div>
       )}
 
       {/* Merge tab */}
       {tab === "merge" && (
-        <div className="space-y-3">
-          <p className="text-xs text-gray-400">
+        <div>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>
             Burn equal pass + fail tokens to get back base tokens.
           </p>
           <input
@@ -366,15 +357,24 @@ export function TradePanel({
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Amount to merge"
-            className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+            className="form-input"
+            style={{ marginBottom: 8 }}
           />
-          <p className="text-xs text-gray-500">
+          <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>
             Max: {Math.min(passBalance, failBalance)} (need equal pass + fail)
           </p>
           <button
+            className="btn"
+            style={{
+              width: "100%",
+              background: "rgba(241, 194, 27, 0.15)",
+              color: "var(--warning)",
+              border: "1px solid rgba(241, 194, 27, 0.3)",
+              opacity: submitting || !amountNum ? 0.5 : 1,
+              cursor: submitting || !amountNum ? "not-allowed" : "pointer",
+            }}
             onClick={handleMerge}
             disabled={submitting || !amountNum}
-            className="w-full py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-lg transition-colors"
           >
             {submitting ? "Merging..." : "Merge Tokens"}
           </button>
@@ -383,8 +383,8 @@ export function TradePanel({
 
       {/* Redeem tab */}
       {tab === "redeem" && (
-        <div className="space-y-3">
-          <p className="text-xs text-gray-400">
+        <div>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>
             {state === "Passed"
               ? "Proposal passed! Redeem your pass tokens 1:1 for base tokens."
               : state === "Failed"
@@ -393,20 +393,26 @@ export function TradePanel({
           </p>
           {(state === "Passed" || state === "Failed") && (
             <>
-              <p className="text-sm text-white">
-                Redeemable:{" "}
-                <span className="font-mono">
+              <div style={{
+                padding: "10px 16px", background: "var(--bg-secondary)", borderRadius: 10,
+                marginBottom: 12, fontSize: 14,
+              }}>
+                Redeemable: <strong style={{ fontFamily: "monospace" }}>
                   {state === "Passed" ? passBalance : failBalance}
-                </span>{" "}
-                tokens
-              </p>
+                </strong> tokens
+              </div>
               <button
+                className="btn"
+                style={{
+                  width: "100%",
+                  background: "rgba(66,190,101,0.15)",
+                  color: "var(--success)",
+                  border: "1px solid rgba(66,190,101,0.3)",
+                  opacity: submitting || (state === "Passed" ? passBalance : failBalance) <= 0 ? 0.5 : 1,
+                  cursor: submitting || (state === "Passed" ? passBalance : failBalance) <= 0 ? "not-allowed" : "pointer",
+                }}
                 onClick={handleRedeem}
-                disabled={
-                  submitting ||
-                  (state === "Passed" ? passBalance : failBalance) <= 0
-                }
-                className="w-full py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white rounded-lg transition-colors"
+                disabled={submitting || (state === "Passed" ? passBalance : failBalance) <= 0}
               >
                 {submitting ? "Redeeming..." : "Redeem Tokens"}
               </button>

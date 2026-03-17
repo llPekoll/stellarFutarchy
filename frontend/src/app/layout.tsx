@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { WalletProvider } from "@/components/WalletProvider";
-import { ConnectWallet } from "@/components/ConnectWallet";
-import Link from "next/link";
+import { Navbar } from "@/components/Navbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const playfair = Playfair_Display({
   subsets: ["latin"],
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
-  title: "Stellar Futarchy",
+  title: "NovaDAO",
   description: "Permissionless futarchy governance on Stellar",
 };
 
@@ -27,35 +29,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
-      >
+      <body className={`${inter.variable} ${playfair.variable}`}>
         <WalletProvider>
-          <nav className="border-b border-gray-800 px-6 py-4">
-            <div className="max-w-6xl mx-auto flex items-center justify-between">
-              <div className="flex items-center gap-8">
-                <Link
-                  href="/"
-                  className="text-lg font-bold text-white hover:text-indigo-400 transition-colors"
-                >
-                  Stellar Futarchy
-                </Link>
-                <div className="flex gap-4 text-sm text-gray-400">
-                  <Link href="/" className="hover:text-white transition-colors">
-                    Projects
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="hover:text-white transition-colors"
-                  >
-                    Register
-                  </Link>
-                </div>
-              </div>
-              <ConnectWallet />
-            </div>
-          </nav>
-          <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
+          <div className="grid-bg" />
+          <Navbar />
+          <main
+            id="main-content"
+            className="main-content"
+          >
+            {children}
+          </main>
         </WalletProvider>
       </body>
     </html>

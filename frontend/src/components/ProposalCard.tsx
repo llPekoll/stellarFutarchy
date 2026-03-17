@@ -7,22 +7,21 @@ interface ProposalCardProps {
   createdAt: number;
   votingEndsAt: number;
   baseLiquidity: string;
-  passPrice?: number; // 0-1 probability
+  passPrice?: number;
   onFinalize?: () => void;
   onTrade?: () => void;
 }
 
-const stateColors = {
-  Active: "bg-green-500/20 text-green-400",
-  Passed: "bg-blue-500/20 text-blue-400",
-  Failed: "bg-red-500/20 text-red-400",
+const stateClasses: Record<string, string> = {
+  Active: "badge-active",
+  Passed: "badge-passed",
+  Failed: "badge-failed",
 };
 
 export function ProposalCard({
   id,
   description,
   state,
-  createdAt,
   votingEndsAt,
   baseLiquidity,
   passPrice,
@@ -41,54 +40,45 @@ export function ProposalCard({
   };
 
   return (
-    <div className="border border-gray-800 rounded-xl p-6">
-      <div className="flex items-start justify-between mb-3">
-        <h4 className="text-md font-semibold text-white">
-          Proposal #{id}
-        </h4>
-        <span
-          className={`text-xs px-2 py-1 rounded-full ${stateColors[state]}`}
-        >
-          {state}
-        </span>
+    <div className="card-static" style={{ marginBottom: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <h4 style={{ fontSize: 16, fontWeight: 600 }}>Proposal #{id}</h4>
+        <span className={`badge ${stateClasses[state]}`}>{state}</span>
       </div>
 
-      <p className="text-sm text-gray-400 mb-4">{description}</p>
+      <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 16 }}>{description}</p>
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
         <div>
-          <p className="text-xs text-gray-500">Liquidity</p>
-          <p className="text-sm text-white font-mono">{baseLiquidity}</p>
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Liquidity</div>
+          <div style={{ fontSize: 14, fontWeight: 600, fontFamily: "monospace" }}>{baseLiquidity}</div>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Pass Probability</p>
-          <p className="text-sm text-white font-mono">
-            {passPrice !== undefined
-              ? `${(passPrice * 100).toFixed(1)}%`
-              : "N/A"}
-          </p>
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Pass Probability</div>
+          <div style={{ fontSize: 14, fontWeight: 600, fontFamily: "monospace" }}>
+            {passPrice !== undefined ? `${(passPrice * 100).toFixed(1)}%` : "N/A"}
+          </div>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Time</p>
-          <p className="text-sm text-white font-mono">
-            {formatTime(timeLeft)}
-          </p>
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Time</div>
+          <div style={{ fontSize: 14, fontWeight: 600, fontFamily: "monospace" }}>{formatTime(timeLeft)}</div>
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div style={{ display: "flex", gap: 8 }}>
         {state === "Active" && timeLeft > 0 && (
-          <button
-            onClick={onTrade}
-            className="flex-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm rounded-lg transition-colors"
-          >
-            Trade
-          </button>
+          <button className="btn btn-primary" style={{ flex: 1 }} onClick={onTrade}>Trade</button>
         )}
         {canFinalize && (
           <button
+            className="btn"
+            style={{
+              flex: 1,
+              background: "rgba(241, 194, 27, 0.15)",
+              color: "var(--warning)",
+              border: "1px solid rgba(241, 194, 27, 0.3)",
+            }}
             onClick={onFinalize}
-            className="flex-1 px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm rounded-lg transition-colors"
           >
             Finalize
           </button>

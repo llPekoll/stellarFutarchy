@@ -20,20 +20,45 @@ export function DaoCard({
   creator,
 }: DaoCardProps) {
   return (
-    <Link href={`/dao/${id}`}>
-      <div className="border border-gray-800 rounded-xl p-6 hover:border-indigo-500/50 hover:bg-gray-900/50 transition-all cursor-pointer">
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-lg font-semibold text-white">{name}</h3>
-          <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded-full">
+    <Link href={`/dao/${id}`} style={{ textDecoration: "none", color: "inherit" }}>
+      <div className="card" style={{ cursor: "pointer" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(15, 98, 254, 0.15)",
+            }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4589FF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="20" x2="12" y2="10" /><line x1="18" y1="20" x2="18" y2="4" /><line x1="6" y1="20" x2="6" y2="16" />
+            </svg>
+          </div>
+          <span className="badge badge-active">
             {proposalCount} proposals
           </span>
         </div>
-        <p className="text-sm text-gray-400 mb-4 line-clamp-2">
-          {description}
-        </p>
-        <div className="flex items-center gap-4 text-xs text-gray-500">
-          <span>Token: {baseToken.slice(0, 8)}...</span>
-          <span>By: {creator.slice(0, 8)}...</span>
+        <div style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>{name}</div>
+        <div style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.5 }}>
+          {description || "Futarchy governance DAO"}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Token</div>
+            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: "monospace" }}>
+              {baseToken ? `${baseToken.slice(0, 8)}...` : "—"}
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Creator</div>
+            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: "monospace" }}>
+              {creator.slice(0, 4)}...{creator.slice(-4)}
+            </div>
+          </div>
         </div>
       </div>
     </Link>
